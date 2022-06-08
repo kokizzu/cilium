@@ -1,9 +1,11 @@
 #!/bin/bash
 
+PS4='+[\t] '
 set -eux
 
 IMG_OWNER=${1:-cilium}
 IMG_TAG=${2:-latest}
+HELM_CHART_DIR=${3:-/vagrant/install/kubernetes/cilium}
 
 ###########
 #  SETUP  #
@@ -44,7 +46,7 @@ nsenter -t $CONTROL_PLANE_PID -n /bin/sh -c "\
     ip l s dev l4lb-veth1 up"
 
 # Install Cilium as standalone L4LB
-helm install cilium ../../install/kubernetes/cilium \
+helm install cilium ${HELM_CHART_DIR} \
     --wait \
     --namespace kube-system \
     --set debug.enabled=true \

@@ -305,6 +305,8 @@ type BackendState uint8
 
 // Backend represents load balancer backend.
 type Backend struct {
+	// FEPortName is the frontend port name. This is used to filter backends sending to EDS.
+	FEPortName string
 	// ID of the backend
 	ID BackendID
 	// Node hosting this backend. This is used to determine backends local to
@@ -334,7 +336,8 @@ type SVC struct {
 	Name                      string // Service name
 	Namespace                 string // Service namespace
 	LoadBalancerSourceRanges  []*cidr.CIDR
-	L7LBProxyPort             uint16 // Non-zero for L7 LB services
+	L7LBProxyPort             uint16   // Non-zero for L7 LB services
+	L7LBFrontendPorts         []string // Non-zero for L7 LB frontend service ports
 }
 
 func (s *SVC) GetModel() *models.Service {

@@ -98,6 +98,11 @@ Users (Alphabetically)
       U: Networking, NetworkPolicy, and Kubernetes services
       L: https://microk8s.io/
 
+    * N: Capital One
+      D: Capital One uses Cilium as its standard CNI for all Kubernetes environments
+      U: CNI, CiliumClusterWideNetworkpolicy, CiliumNetworkPolicy, Hubble, network visibility
+      L: https://www.youtube.com/watch?v=hwOpCKBaJ-w
+
     * N: CENGN - Centre of Excellence in Next Generation Networks
       D: CENGN is using Cilium in multiple clusters including production and development clusters (self-hosted k8s, On-premises)
       U: L3/L4/L7 network policies, Monitoring via Prometheus metrics & Hubble
@@ -112,6 +117,12 @@ Users (Alphabetically)
     * N: Cognite
       D: Cognite is an industrial DataOps provider and uses Cilium as the CNI plugin
       Q: @Robert Collins
+
+    * N: CONNY
+      D: CONNY is legaltech platform to improve access to justice for individuals
+      U: Networking, NetworkPolicy, Services
+      Q: @ant31
+      L: https://conny.de
 
     * N: Crane
       D: Crane uses Cilium as the default CNI
@@ -152,6 +163,12 @@ Users (Alphabetically)
       L: https://metal.equinix.com/
       Q: @matoszz
 
+    * N: Exoscale
+      D: Exoscale is offering Cilium as a CNI option on its managed Kubernetes service named SKS (Scalable Kubernetes Service)
+      U: CNI, Networking
+      L: https://www.exoscale.com/sks/
+      Q: @Antoine
+
     * N: finleap connect
       D: finleap connect is using Cilium in their production clusters (self-hosted, bare-metal, private cloud)
       U: CNI, NetworkPolicies
@@ -173,11 +190,22 @@ Users (Alphabetically)
       U: Networking, network policy, and network visibility
       L: https://cloud.google.com/blog/products/containers-kubernetes/bringing-ebpf-and-cilium-to-google-kubernetes-engine
 
+    * N: IKEA IT AB
+      D: IKEA IT AB is using Cilium for production and non-production environments (self-hosted, bare-metal, private cloud)
+      U: Networking, CiliumclusterWideNetworkPolicy, CiliumNetworkPolicy, kube-proxy replacement, Hubble, Direct routing, egress gateway, hubble-otel, Multi Nic XDP, BGP advertisements, Bandwidth Manager, Service Load Balancing, Cluster Mesh
+      L: https://www.ingka.com/
+
     * N: Infomaniak
       D: Infomaniak is using Cilium in their production clusters (self-hosted, bare-metal and openstack)
       U: Networking, CiliumNetworkPolicy, BPF NodePort, Direct routing, kube-proxy replacement
       L: https://www.infomaniak.com/en
       Q: @reneluria
+    
+    * N: innoQ Schweiz GmbH
+      D: As a consulting company we added Cilium to a couple of our customers infrastructure
+      U: Networking, CiliumNetworkPolicy at L7, kube-proxy replacement, encryption
+      L: https://www.cloud-migration.ch/
+      Q: @fakod
   
     * N: JUMO
       D: JUMO is using Cilium as their CNI plugin for all of their AWS-hosted EKS clusters

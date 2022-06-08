@@ -71,7 +71,7 @@ type NodeDiscovery struct {
 	LocalConfig           datapath.LocalNodeConfiguration
 	Registrar             nodestore.NodeRegistrar
 	Registered            chan struct{}
-	LocalStateInitialized chan struct{}
+	localStateInitialized chan struct{}
 	NetConf               *cnitypes.NetConf
 	k8sNodeGetter         k8sNodeGetter
 	localNodeLock         lock.Mutex
@@ -127,7 +127,7 @@ func NewNodeDiscovery(manager *nodemanager.Manager, mtuConfig mtu.Configuration,
 			Source: source.Local,
 		},
 		Registered:            make(chan struct{}),
-		LocalStateInitialized: make(chan struct{}),
+		localStateInitialized: make(chan struct{}),
 		NetConf:               netConf,
 	}
 }
@@ -206,9 +206,28 @@ func (n *NodeDiscovery) StartDiscovery() {
 	}()
 
 	n.Manager.NodeUpdated(n.localNode)
-	close(n.LocalStateInitialized)
+	close(n.localStateInitialized)
 
 	n.updateLocalNode()
+}
+
+// WaitForLocalNodeInit blocks until StartDiscovery() has been called.  This is used to block until
+// Node's local IP addresses have been allocated, see https://github.com/cilium/cilium/pull/14299
+// and https://github.com/cilium/cilium/pull/14670.
+func (n *NodeDiscovery) WaitForLocalNodeInit() {
+	<-n.localStateInitialized
+}
+
+func (n *NodeDiscovery) NodeDeleted(node nodeTypes.Node) {
+	n.Manager.NodeDeleted(node)
+}
+
+func (n *NodeDiscovery) NodeUpdated(node nodeTypes.Node) {
+	n.Manager.NodeUpdated(node)
+}
+
+func (n *NodeDiscovery) ClusterSizeDependantInterval(baseInterval time.Duration) time.Duration {
+	return n.Manager.ClusterSizeDependantInterval(baseInterval)
 }
 
 func (n *NodeDiscovery) fillLocalNode() {
@@ -219,6 +238,8 @@ func (n *NodeDiscovery) fillLocalNode() {
 	n.localNode.IPv6AllocCIDR = node.GetIPv6AllocRange()
 	n.localNode.IPv4HealthIP = node.GetEndpointHealthIPv4()
 	n.localNode.IPv6HealthIP = node.GetEndpointHealthIPv6()
+	n.localNode.IPv4IngressIP = node.GetIngressIPv4()
+	n.localNode.IPv6IngressIP = node.GetIngressIPv6()
 	n.localNode.ClusterID = option.Config.ClusterID
 	n.localNode.EncryptionKey = node.GetIPsecKeyIdentity()
 	n.localNode.WireguardPubKey = node.GetWireguardPubKey()
@@ -481,6 +502,16 @@ func (n *NodeDiscovery) mutateNodeResource(nodeResource *ciliumv2.CiliumNode) er
 	nodeResource.Spec.HealthAddressing.IPv6 = ""
 	if ip := n.localNode.IPv6HealthIP; ip != nil {
 		nodeResource.Spec.HealthAddressing.IPv6 = ip.String()
+	}
+
+	nodeResource.Spec.IngressAddressing.IPV4 = ""
+	if ip := n.localNode.IPv4IngressIP; ip != nil {
+		nodeResource.Spec.IngressAddressing.IPV4 = ip.String()
+	}
+
+	nodeResource.Spec.IngressAddressing.IPV6 = ""
+	if ip := n.localNode.IPv6IngressIP; ip != nil {
+		nodeResource.Spec.IngressAddressing.IPV6 = ip.String()
 	}
 
 	if pk := n.localNode.WireguardPubKey; pk != "" {

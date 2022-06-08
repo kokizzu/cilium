@@ -179,7 +179,7 @@ static __always_inline bool nodeport_uses_dsr6(const struct ipv6_ct_tuple *tuple
  * then the helper function won't depend the dsr checks.
  */
 static __always_inline bool snat_v6_needed(struct __ctx_buff *ctx,
-					   union v6addr *addr)
+					   const union v6addr *addr)
 {
 	void *data, *data_end;
 	struct ipv6hdr *ip6;
@@ -203,7 +203,7 @@ static __always_inline bool snat_v6_needed(struct __ctx_buff *ctx,
 }
 
 static __always_inline int nodeport_nat_ipv6_fwd(struct __ctx_buff *ctx,
-						 union v6addr *addr)
+						 const union v6addr *addr)
 {
 	struct ipv6_nat_target target = {
 		.min_port = NODEPORT_PORT_MIN_NAT,
@@ -253,7 +253,7 @@ static __always_inline void rss_gen_src6(union v6addr *src,
 
 static __always_inline int dsr_set_ipip6(struct __ctx_buff *ctx,
 					 const struct ipv6hdr *ip6,
-					 union v6addr *backend_addr,
+					 const union v6addr *backend_addr,
 					 __be32 l4_hint, int *ohead)
 {
 	__u16 payload_len = bpf_ntohs(ip6->payload_len) + sizeof(*ip6);
@@ -293,7 +293,7 @@ static __always_inline int dsr_set_ipip6(struct __ctx_buff *ctx,
 #elif DSR_ENCAP_MODE == DSR_ENCAP_NONE
 static __always_inline int dsr_set_ext6(struct __ctx_buff *ctx,
 					struct ipv6hdr *ip6,
-					union v6addr *svc_addr,
+					const union v6addr *svc_addr,
 					__be16 svc_port, int *ohead)
 {
 	struct dsr_opt_v6 opt __align_stack_8 = {};
@@ -638,7 +638,7 @@ int tail_nodeport_nat_ipv6(struct __ctx_buff *ctx)
 		 */
 		if (dir == NAT_DIR_INGRESS) {
 			bpf_skip_nodeport_set(ctx);
-			ep_tail_call(ctx, CILIUM_CALL_IPV6_FROM_LXC);
+			ep_tail_call(ctx, CILIUM_CALL_IPV6_FROM_NETDEV);
 			ret = DROP_MISSED_TAIL_CALL;
 			goto drop_err;
 		}
@@ -987,7 +987,7 @@ static __always_inline int rev_nodeport_lb6(struct __ctx_buff *ctx, int *ifindex
 	} else {
 		if (!bpf_skip_recirculation(ctx)) {
 			bpf_skip_nodeport_set(ctx);
-			ep_tail_call(ctx, CILIUM_CALL_IPV6_FROM_LXC);
+			ep_tail_call(ctx, CILIUM_CALL_IPV6_FROM_NETDEV);
 			return DROP_MISSED_TAIL_CALL;
 		}
 	}
@@ -1689,7 +1689,7 @@ int tail_nodeport_nat_ipv4(struct __ctx_buff *ctx)
 		 */
 		if (dir == NAT_DIR_INGRESS) {
 			bpf_skip_nodeport_set(ctx);
-			ep_tail_call(ctx, CILIUM_CALL_IPV4_FROM_LXC);
+			ep_tail_call(ctx, CILIUM_CALL_IPV4_FROM_NETDEV);
 			ret = DROP_MISSED_TAIL_CALL;
 			goto drop_err;
 		}
@@ -1700,7 +1700,13 @@ int tail_nodeport_nat_ipv4(struct __ctx_buff *ctx)
 	bpf_mark_snat_done(ctx);
 
 	if (dir == NAT_DIR_INGRESS) {
-		/* Handle reverse DNAT for reply packets from remote backends. */
+		/* At this point we know that a reverse SNAT mapping exists.
+		 * Otherwise, we would have tail-called back to
+		 * CALL_IPV4_FROM_NETDEV in the code above. The existence of the
+		 * mapping is an indicator that the packet might be a reply from
+		 * a remote backend. So handle the service reverse DNAT (if
+		 * needed)
+		 */
 		ep_tail_call(ctx, CILIUM_CALL_IPV4_NODEPORT_REVNAT);
 		ret = DROP_MISSED_TAIL_CALL;
 		goto drop_err;
@@ -2073,7 +2079,7 @@ static __always_inline int rev_nodeport_lb4(struct __ctx_buff *ctx, int *ifindex
 	} else {
 		if (!bpf_skip_recirculation(ctx)) {
 			bpf_skip_nodeport_set(ctx);
-			ep_tail_call(ctx, CILIUM_CALL_IPV4_FROM_LXC);
+			ep_tail_call(ctx, CILIUM_CALL_IPV4_FROM_NETDEV);
 			return DROP_MISSED_TAIL_CALL;
 		}
 	}

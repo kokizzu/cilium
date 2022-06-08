@@ -693,7 +693,9 @@ hubble:
     # by a non-local client
     enabled: true
     # -- Service Port for the Peer service.
-    servicePort: 4254
+    # If not set, it is dynamically assigned to port 443 if TLS is enabled and to
+    # port 80 if not.
+    # servicePort: 80
     # -- Target Port for the Peer service.
     targetPort: 4244
     # -- The cluster domain to use to query the Hubble Peer service. It should
@@ -962,26 +964,6 @@ hubble:
       #     cpu: 100m
       #     memory: 64Mi
 
-    proxy:
-      # -- Hubble-ui ingress proxy image.
-      image:
-        override: ~
-        repository: docker.io/envoyproxy/envoy
-        tag: v1.20.2@sha256:eb7d88d5186648049f0a80062120bd45e7557bdff3f6a30e1fc92cbb50916868
-        pullPolicy: Always
-
-      # -- Additional hubble-ui proxy environment variables.
-      extraEnv: []
-
-      # -- Resource requests and limits for the 'proxy' container of the 'hubble-ui' deployment.
-      resources: {}
-      #   limits:
-      #     cpu: 1000m
-      #     memory: 1024M
-      #   requests:
-      #     cpu: 100m
-      #     memory: 64Mi
-
     # -- The number of replicas of Hubble UI to deploy.
     replicas: 1
 
@@ -1196,8 +1178,8 @@ enableIPv4Masquerade: true
 # -- Enables masquerading of IPv6 traffic leaving the node from endpoints.
 enableIPv6Masquerade: true
 
-# -- Enables egress gateway (beta) to redirect and SNAT the traffic that
-# leaves the cluster.
+# -- Enables egress gateway to redirect and SNAT the traffic that leaves the
+# cluster.
 egressGateway:
   enabled: false
   # -- Install egress gateway IP rules and routes in order to properly steer
@@ -2054,3 +2036,7 @@ enableK8sTerminatingEndpoint: true
 
 # -- Configure whether to unload DNS policy rules on graceful shutdown
 # dnsPolicyUnloadOnShutdown: false
+
+# -- Configure the key of the taint indicating that Cilium is not ready on the node.
+# When set to a value starting with `ignore-taint.cluster-autoscaler.kubernetes.io/`, the Cluster Autoscaler will ignore the taint on its decisions, allowing the cluster to scale up.
+agentNotReadyTaintKey: "node.cilium.io/agent-not-ready"

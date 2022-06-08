@@ -29,6 +29,8 @@ export GOARCH ?= $(NATIVE_ARCH)
 INSTALL = install
 
 CONTAINER_ENGINE?=docker
+DOCKER_FLAGS?=
+DOCKER_BUILD_FLAGS?=
 
 # use gsed if avaiable, otherwise use sed.
 # gsed is needed for MacOS to make in-place replacement work correctly.
@@ -68,7 +70,7 @@ GO_TAGS_FLAGS = osusergo
 # RACE is specified.
 GOTEST_COVER_OPTS =
 
-GOLANGCILINT_WANT_VERSION = 1.45.2
+GOLANGCILINT_WANT_VERSION = 1.46.2
 GOLANGCILINT_IMAGE_SHA = sha256:e84b639c061c8888be91939c78dae9b1525359954e405ab0d9868a46861bd21b
 GOLANGCILINT_VERSION = $(shell golangci-lint version 2>/dev/null)
 
@@ -190,3 +192,11 @@ endif
 HELM_DOCS_VERSION ?= "5ddabba"
 HELM_DOCS_SHA ?= "c4a91daac6bf9c181fac79e09712fcf1f9102fcab1bbacbc733883965f5fd244"
 HELM_DOCS_IMAGE ?= "docker.io/bmcustodio/helm-docs:$(HELM_DOCS_VERSION)@sha256:$(HELM_DOCS_SHA)"
+
+define print_help_line
+  @printf "  \033[36m%-29s\033[0m %s.\n" $(1) $(2)
+endef
+
+define print_help_from_makefile
+  @awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z0-9][a-zA-Z0-9 _-]*:.*?##/ { split($$1, targets, " "); for (i in targets) { printf "  \033[36m%-28s\033[0m %s\n", targets[i], $$2 } } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+endef

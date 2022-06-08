@@ -17,6 +17,10 @@
      - Install the cilium agent resources.
      - bool
      - ``true``
+   * - agentNotReadyTaintKey
+     - Configure the key of the taint indicating that Cilium is not ready on the node. When set to a value starting with ``ignore-taint.cluster-autoscaler.kubernetes.io/``\ , the Cluster Autoscaler will ignore the taint on its decisions, allowing the cluster to scale up.
+     - string
+     - ``"node.cilium.io/agent-not-ready"``
    * - alibabacloud.enabled
      - Enable AlibabaCloud ENI integration
      - bool
@@ -366,7 +370,7 @@
      - string
      - ``"false"``
    * - egressGateway
-     - Enables egress gateway (beta) to redirect and SNAT the traffic that leaves the cluster.
+     - Enables egress gateway to redirect and SNAT the traffic that leaves the cluster.
      - object
      - ``{"enabled":false,"installRoutes":false}``
    * - egressGateway.installRoutes
@@ -701,10 +705,6 @@
      - Enable a K8s Service for the Peer service, so that it can be accessed by a non-local client
      - bool
      - ``true``
-   * - hubble.peerService.servicePort
-     - Service Port for the Peer service.
-     - int
-     - ``4254``
    * - hubble.peerService.targetPort
      - Target Port for the Peer service.
      - int
@@ -949,18 +949,6 @@
      - The priority class to use for hubble-ui
      - string
      - ``""``
-   * - hubble.ui.proxy.extraEnv
-     - Additional hubble-ui proxy environment variables.
-     - list
-     - ``[]``
-   * - hubble.ui.proxy.image
-     - Hubble-ui ingress proxy image.
-     - object
-     - ``{"override":null,"pullPolicy":"Always","repository":"docker.io/envoyproxy/envoy","tag":"v1.20.2@sha256:eb7d88d5186648049f0a80062120bd45e7557bdff3f6a30e1fc92cbb50916868"}``
-   * - hubble.ui.proxy.resources
-     - Resource requests and limits for the 'proxy' container of the 'hubble-ui' deployment.
-     - object
-     - ``{}``
    * - hubble.ui.replicas
      - The number of replicas of Hubble UI to deploy.
      - int

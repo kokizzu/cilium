@@ -315,6 +315,13 @@ Annotations:
 * The Cilium agent does not support the legacy ``nat46-range`` option as well
   as the per-endpoint ``NAT46`` configuration anymore. Both are replaced in
   favor of NAT46/64 handling for services.
+* The kube-proxy replacement in the tunneling mode (i.e., ``vxlan`` or
+  ``geneve``) will set the ``reserved:world`` security identity for all service
+  requests coming from outside the cluster. Previously, when a selected service
+  endpoint was on a different node, the security identity was set to the
+  ``reserved:remote-node``. The change might impact those who have a network policy
+  allowing access to the service from inside the cluster, and the policy was used
+  to allow access from outside.
 
 New Options
 ~~~~~~~~~~~
@@ -343,6 +350,8 @@ Removed Options
   Helm) was deprecated, and it will be removed in version 1.13.
 * The ``native-routing-cidr`` option deprecated in 1.11 in favor of
   ``ipv4-native-routing-cidr`` has been removed.
+* The ``prefilter-device`` and ``prefilter-mode`` options deprecated in 1.11 in
+  favor of ``enable-xdp-prefilter`` and ``bpf-lb-acceleration`` have been removed.
 
 Deprecated Options
 ~~~~~~~~~~~~~~~~~~

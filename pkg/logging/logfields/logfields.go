@@ -138,6 +138,12 @@ const (
 	// V6HealthIP is an address used to contact the cilium-health endpoint
 	V6HealthIP = "v6healthIP.IPv6"
 
+	// V4IngressIP is an address used to contact the cilium-Ingress endpoint
+	V4IngressIP = "v4IngressIP.IPv4"
+
+	// V6IngressIP is an address used to contact the cilium-Ingress endpoint
+	V6IngressIP = "v6IngressIP.IPv6"
+
 	// V4CiliumHostIP is an address used for the cilium_host interface.
 	V4CiliumHostIP = "v4CiliumHostIP.IPv4"
 
@@ -273,6 +279,9 @@ const (
 
 	// L7LBProxyPort is the port number of the Envoy listener a L7 LB service redirects traffic to for load balancing.
 	L7LBProxyPort = "l7LBProxyPort"
+
+	// L7LBFrontendPorts is the list of frontend ports for load balancing.
+	L7LBFrontendPorts = "l7LBFrontendPorts"
 
 	// BackendState is the state of the backend
 	BackendState = "backendState"

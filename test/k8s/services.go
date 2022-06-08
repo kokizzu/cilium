@@ -106,9 +106,8 @@ var _ = SkipDescribeIf(helpers.RunsOn54Kernel, "K8sServicesTest", func() {
 		// This is testing bpf_lxc LB (= KPR=disabled) when both client and
 		// server are running on the same node. Thus, skipping when running with
 		// KPR.
-		// See https://github.com/cilium/cilium/issues/19787
 		SkipItIf(func() bool {
-			return helpers.RunsWithKubeProxyReplacement() || helpers.SkipQuarantined()
+			return helpers.RunsWithKubeProxyReplacement()
 		}, "Checks service on same node", func() {
 			serviceNames := []string{appServiceName}
 			if helpers.DualStackSupported() {
@@ -332,9 +331,8 @@ var _ = SkipDescribeIf(helpers.RunsOn54Kernel, "K8sServicesTest", func() {
 			})
 		})
 
-		// See https://github.com/cilium/cilium/issues/19787
 		SkipContextIf(func() bool {
-			return helpers.RunsWithKubeProxyReplacement() || helpers.SkipQuarantined()
+			return helpers.RunsWithKubeProxyReplacement()
 		}, "Tests NodePort inside cluster (kube-proxy)", func() {
 			SkipItIf(helpers.DoesNotRunOn419OrLaterKernel, "with IPSec and externalTrafficPolicy=Local", func() {
 				deploymentManager.SetKubectl(kubectl)
@@ -444,9 +442,8 @@ var _ = SkipDescribeIf(helpers.RunsOn54Kernel, "K8sServicesTest", func() {
 			})
 		})
 
-		// See https://github.com/cilium/cilium/issues/19787
 		SkipContextIf(func() bool {
-			return helpers.RunsWithKubeProxyReplacement() || helpers.SkipQuarantined()
+			return helpers.RunsWithKubeProxyReplacement()
 		}, "with L4 policy", func() {
 			var (
 				demoPolicy string
@@ -479,9 +476,8 @@ var _ = SkipDescribeIf(helpers.RunsOn54Kernel, "K8sServicesTest", func() {
 			})
 		})
 
-		// See https://github.com/cilium/cilium/issues/19787
 		SkipContextIf(func() bool {
-			return helpers.RunsWithKubeProxyReplacement() || helpers.SkipQuarantined()
+			return helpers.RunsWithKubeProxyReplacement()
 		}, "with L7 policy", func() {
 			var demoPolicyL7 string
 

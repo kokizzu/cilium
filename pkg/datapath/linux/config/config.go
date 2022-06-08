@@ -147,7 +147,6 @@ func (h *HeaderfileWriter) WriteNodeConfig(w io.Writer, cfg *datapath.LocalNodeC
 	cDefinesMap["POLICY_MAP_SIZE"] = fmt.Sprintf("%d", policymap.MaxEntries)
 	cDefinesMap["IPCACHE_MAP"] = ipcachemap.Name
 	cDefinesMap["IPCACHE_MAP_SIZE"] = fmt.Sprintf("%d", ipcachemap.MaxEntries)
-	// TODO(anfernee): Update Documentation/concepts/ebpf/maps.rst when egress gateway support is merged.
 	cDefinesMap["EGRESS_POLICY_MAP"] = egressmap.PolicyMapName
 	cDefinesMap["EGRESS_POLICY_MAP_SIZE"] = fmt.Sprintf("%d", egressmap.MaxPolicyEntries)
 	cDefinesMap["POLICY_PROG_MAP_SIZE"] = fmt.Sprintf("%d", policymap.PolicyCallMaxEntries)
@@ -162,6 +161,8 @@ func (h *HeaderfileWriter) WriteNodeConfig(w io.Writer, cfg *datapath.LocalNodeC
 	cDefinesMap["CT_CLOSE_TIMEOUT"] = fmt.Sprintf("%d", int64(option.Config.CTMapEntriesTimeoutFIN.Seconds()))
 	cDefinesMap["CT_REPORT_INTERVAL"] = fmt.Sprintf("%d", int64(option.Config.MonitorAggregationInterval.Seconds()))
 	cDefinesMap["CT_REPORT_FLAGS"] = fmt.Sprintf("%#04x", int64(option.Config.MonitorAggregationFlags))
+	cDefinesMap["CT_TAIL_CALL_BUFFER4"] = "cilium_tail_call_buffer4"
+	cDefinesMap["CT_TAIL_CALL_BUFFER6"] = "cilium_tail_call_buffer6"
 
 	if option.Config.DatapathMode == datapathOption.DatapathModeIpvlan {
 		cDefinesMap["ENABLE_EXTRA_HOST_DEV"] = "1"
@@ -569,6 +570,10 @@ func (h *HeaderfileWriter) WriteNodeConfig(w io.Writer, cfg *datapath.LocalNodeC
 
 	if option.Config.EnableICMPRules {
 		cDefinesMap["ENABLE_ICMP_RULE"] = "1"
+	}
+
+	if option.Config.EnableL7Proxy {
+		cDefinesMap["ENABLE_L7_PROXY"] = "1"
 	}
 
 	// Since golang maps are unordered, we sort the keys in the map

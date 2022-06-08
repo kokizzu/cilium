@@ -39,7 +39,6 @@ import (
 	"github.com/cilium/cilium/pkg/datapath/linux/ipsec"
 	"github.com/cilium/cilium/pkg/datapath/linux/probes"
 	linuxrouting "github.com/cilium/cilium/pkg/datapath/linux/routing"
-	"github.com/cilium/cilium/pkg/datapath/loader"
 	"github.com/cilium/cilium/pkg/datapath/maps"
 	datapathOption "github.com/cilium/cilium/pkg/datapath/option"
 	"github.com/cilium/cilium/pkg/defaults"
@@ -512,6 +511,9 @@ func initializeFlags() {
 	flags.String(option.K8sNamespaceName, "", "Name of the Kubernetes namespace in which Cilium is deployed in")
 	option.BindEnv(option.K8sNamespaceName)
 
+	flags.String(option.AgentNotReadyNodeTaintKeyName, defaults.AgentNotReadyNodeTaint, "Key of the taint indicating that Cilium is not ready on the node")
+	option.BindEnv(option.AgentNotReadyNodeTaintKeyName)
+
 	flags.Bool(option.JoinClusterName, false, "Join a Cilium cluster via kvstore registration")
 	option.BindEnv(option.JoinClusterName)
 
@@ -822,17 +824,6 @@ func initializeFlags() {
 
 	flags.Bool(option.EnableXDPPrefilter, false, "Enable XDP prefiltering")
 	option.BindEnv(option.EnableXDPPrefilter)
-
-	flags.String(option.PrefilterDevice, "undefined", "Device facing external network for XDP prefiltering")
-	option.BindEnv(option.PrefilterDevice)
-	flags.MarkDeprecated(option.PrefilterDevice,
-		fmt.Sprintf("This option will be removed in v1.12. Use --%s and --%s instead.",
-			option.EnableXDPPrefilter, option.Devices))
-
-	flags.String(option.PrefilterMode, option.ModePreFilterNative, "Prefilter mode via XDP (\"native\", \"generic\")")
-	option.BindEnv(option.PrefilterMode)
-	flags.MarkDeprecated(option.PrefilterMode,
-		fmt.Sprintf("This option will be removed in v1.12. Use --%s instead.", option.LoadBalancerAcceleration))
 
 	flags.Bool(option.PreAllocateMapsName, defaults.PreAllocateMaps, "Enable BPF map pre-allocation")
 	option.BindEnv(option.PreAllocateMapsName)
@@ -1315,33 +1306,6 @@ func initEnv(cmd *cobra.Command) {
 			option.AllowLocalhostAuto, option.AllowLocalhostAlways, option.AllowLocalhostPolicy)
 	}
 
-	option.Config.ModePreFilter = strings.ToLower(option.Config.ModePreFilter)
-	if option.Config.ModePreFilter == "generic" {
-		option.Config.ModePreFilter = option.ModePreFilterGeneric
-	}
-	if option.Config.ModePreFilter != option.ModePreFilterNative &&
-		option.Config.ModePreFilter != option.ModePreFilterGeneric {
-		log.Fatalf("Invalid setting for --prefilter-mode, must be { %s, generic }",
-			option.ModePreFilterNative)
-	}
-
-	if option.Config.DevicePreFilter != "undefined" {
-		option.Config.EnableXDPPrefilter = true
-		found := false
-		for _, dev := range option.Config.GetDevices() {
-			if dev == option.Config.DevicePreFilter {
-				found = true
-				break
-			}
-		}
-		if !found {
-			option.Config.AppendDevice(option.Config.DevicePreFilter)
-		}
-		if err := loader.SetXDPMode(option.Config.ModePreFilter); err != nil {
-			scopedLog.WithError(err).Fatal("Cannot set prefilter XDP mode")
-		}
-	}
-
 	scopedLog = log.WithField(logfields.Path, option.Config.SocketPath)
 	socketDir := path.Dir(option.Config.SocketPath)
 	if err := os.MkdirAll(socketDir, defaults.RuntimePathRights); err != nil {
@@ -1766,7 +1730,8 @@ func runDaemon() {
 	bootstrapStats.enableConntrack.Start()
 	log.Info("Starting connection tracking garbage collector")
 	gc.Enable(option.Config.EnableIPv4, option.Config.EnableIPv6,
-		restoredEndpoints.restored, d.endpointManager)
+		restoredEndpoints.restored, d.endpointManager,
+		d.datapath.LocalNodeAddressing())
 	bootstrapStats.enableConntrack.End(true)
 
 	bootstrapStats.k8sInit.Start()
@@ -1909,6 +1874,13 @@ func runDaemon() {
 	}
 
 	if option.Config.BGPControlPlaneEnabled() {
+		switch option.Config.IPAM {
+		case ipamOption.IPAMClusterPool:
+		case ipamOption.IPAMClusterPoolV2:
+		case ipamOption.IPAMKubernetes:
+		default:
+			log.Fatalf("BGP control plane cannot be utilized with IPAM mode: %v", option.Config.IPAM)
+		}
 		log.Info("Initializing BGP Control Plane")
 		if err := d.instantiateBGPControlPlane(d.ctx); err != nil {
 			log.WithError(err).Fatal("Error returned when instantiating BGP control plane")

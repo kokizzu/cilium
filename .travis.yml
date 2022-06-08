@@ -3,7 +3,7 @@ language: go
 dist: focal
 sudo: required
 
-go: "1.18.2"
+go: "1.18.3"
 
 jobs:
   include:
@@ -24,7 +24,9 @@ addons:
 before_install: ./.travis/prepare.sh
 
 before_script:
+  - export DOCKER_BUILD_FLAGS=--quiet
   - export PATH=/usr/local/clang/bin:$PATH
+  - export V=0
 
 script: ./.travis/build.sh
 
